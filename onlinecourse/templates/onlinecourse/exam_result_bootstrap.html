@@ -38,17 +38,52 @@
 <div class="container-fluid">
     {% if grade > 80 %}
     <div class="alert alert-success">
-       <!--HINT Display passed info -->
+       <b>Congratulations, {{user.first_name}}!</b>
+            You have passed the exam with a score of {{ score_points }} / {{score_total }}
     </div>
         {% else %}
         <div class="alert alert-danger">
-            <!--HINT Display failed info -->
+           <b>Failed</b> Sorry, {{user.first_name}}!
+            You have failed the exam with a score of {{ score_points }} / {{score_total }}
         </div>
         <a class="btn btn-link text-danger" href="{% url 'onlinecourse:course_details' course.id %}">Re-test</a>
         {% endif %}
         <div class="card-columns-vertical mt-1">
         <h5 class="">Exam results</h5>
-            <!--HINT Display exam results-->
+
+              {% for question in course.question_set.all %}
+                <div class="card mt-1">
+                    <div class="card-header"><h5>{{ question.question_text}}</h5></div>
+                    <div class="form-group">
+                        {% for choice in question.choice_set.all %}
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                {% if choice.is_correct %}
+                                    {% if choice.id in choice_ids %}
+                                    <span style="color:green">
+                                        Correct answer: {{choice.choice_content}}
+                                    </span>
+                                    {% else %}
+                                        <span style="color:orange">
+                                        Not selected: {{choice.choice_content}}
+                                        </span>
+                                    {% endif%}
+                                {% else %}
+                                    {% if choice.id in choice_ids %}
+                                        <span style="color:red">
+                                        Incorrect answer: {{choice.choice_content}}
+                                        </span>
+                                    {% else %}
+                                    {{choice.choice_content}}
+                                    {% endif%}
+                                {% endif%}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
         </div>
     </div>
 </body>
