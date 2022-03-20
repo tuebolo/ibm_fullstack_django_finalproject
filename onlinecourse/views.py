@@ -144,17 +144,31 @@ def submit(request, course_id):
     submission.save()
     return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course.id,submission.id)))
 
+def check_grade(question, choice_ids):
+    for choice in question.choice_set.all():
+        user_selected = choice.id in choice_ids
+        if choice.is_correct:
+            if not user_selected:
+                return 0
+        elif user_selected:
+            return 0
+    return question.grade
+
+
 def show_exam_result(request, course_id, submission_id):
     course = get_object_or_404(Course, pk=course_id)
     submission = Submission.objects.get(id=submission_id)
     choice_ids = set(choice.id for choice in submission.choices.all())
+    score_total = sum(question.grade for question in course.question_set.all())
+    score_points = sum(check_grade(question, choice_ids) for question in course.question_set.all())
     context = {
         'course': course,
         'user': request.user,
         'submission': submission,
         'course_list': [],
         'choice_ids': choice_ids,
-        'score_points': 70,
-        'score_total': 100
+        'score_points': score_points,
+        'score_total': score_total,
+        'pass_status': score_points / score_total > .8
     }
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
